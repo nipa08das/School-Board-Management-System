@@ -2,8 +2,6 @@ package com.school.sba.response_dto;
 
 import com.school.sba.enums.UserRole;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,6 +21,5 @@ public class UserResponse {
 	private String lastName;
 	private long contactNo;
 	private String email;
-	@Enumerated(EnumType.STRING)
 	private UserRole userRole;
 }

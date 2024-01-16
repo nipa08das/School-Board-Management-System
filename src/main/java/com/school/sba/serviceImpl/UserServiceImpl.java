@@ -1,5 +1,7 @@
 package com.school.sba.serviceImpl;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,7 @@ import com.school.sba.entity.User;
 import com.school.sba.enums.UserRole;
 import com.school.sba.exception.AdminAlreadyExistsException;
 import com.school.sba.exception.InvalidUserRoleException;
+import com.school.sba.exception.UserNotFoundByIdException;
 import com.school.sba.repository.UserRepository;
 import com.school.sba.request_dto.UserRequest;
 import com.school.sba.response_dto.UserResponse;
@@ -35,6 +38,7 @@ public class UserServiceImpl implements UserService {
 				.contactNo(userRequest.getContactNo())
 				.email(userRequest.getEmail())
 				.userRole(UserRole.valueOf(userRequest.getUserRole().toUpperCase()))
+				.isDeleted(false)
 				.build();
 	}
 	
@@ -69,7 +73,7 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
-	public ResponseEntity<ResponseStructure<UserResponse>> register(@Valid UserRequest userRequest) {
+	public ResponseEntity<ResponseStructure<UserResponse>> registerUser(@Valid UserRequest userRequest) {
 	    try {
 	        UserRole role = UserRole.valueOf(userRequest.getUserRole().toUpperCase());
 
@@ -85,6 +89,34 @@ public class UserServiceImpl implements UserService {
 	        throw new InvalidUserRoleException("Invalid User Role");
 	    }
 	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<UserResponse>> deleteUser(int userId) 
+	{
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
+		if(user.isDeleted())
+		{
+			throw new UserNotFoundByIdException("Invalid User Id");
+		}
+		user.setDeleted(true);
+		userRepository.save(user);
+		
+		return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "User data deleted successfully", mapToUserResponse(user));
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<UserResponse>> findUserById(int userId)
+	{
+		User user = userRepository.findById(userId)
+		.orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
+		if(user.isDeleted())
+		{
+			throw new UserNotFoundByIdException("Invalid User Id");
+		}
+		return ResponseEntityProxy.getResponseEntity(HttpStatus.FOUND, "User data successfully found", mapToUserResponse(user));
+	}
+	
 	
 	
 

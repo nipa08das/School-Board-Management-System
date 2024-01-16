@@ -10,6 +10,10 @@ import jakarta.validation.Valid;
 
 public interface UserService {
 
-	ResponseEntity<ResponseStructure<UserResponse>> register(@Valid UserRequest userRequest);
+	ResponseEntity<ResponseStructure<UserResponse>> registerUser(@Valid UserRequest userRequest);
+
+	ResponseEntity<ResponseStructure<UserResponse>> deleteUser(int userId);
+
+	ResponseEntity<ResponseStructure<UserResponse>> findUserById(int userId);
 
 }

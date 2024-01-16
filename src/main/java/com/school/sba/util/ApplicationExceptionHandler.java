@@ -19,6 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import com.school.sba.exception.AdminAlreadyExistsException;
 import com.school.sba.exception.InvalidUserRoleException;
+import com.school.sba.exception.UserNotFoundByIdException;
 
 @RestControllerAdvice
 public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
@@ -61,5 +62,11 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 	public ResponseEntity<Object> handleDataIntegrityViolation(DataIntegrityViolationException ex)
 	{
 		return exceptionStructure(HttpStatus.BAD_REQUEST, ex.getMessage(), "username, email or password is not unique");
+	}
+	
+	@ExceptionHandler(UserNotFoundByIdException.class)
+	public ResponseEntity<Object> handleUserNotFoundById(UserNotFoundByIdException ex)
+	{
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "User with given Id not found, please provide a valid User Id");
 	}
 }

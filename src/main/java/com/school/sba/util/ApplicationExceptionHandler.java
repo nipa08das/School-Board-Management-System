@@ -18,6 +18,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.school.sba.exception.AdminAlreadyExistsException;
+import com.school.sba.exception.InvalidProgramTypeException;
 import com.school.sba.exception.InvalidUserRoleException;
 import com.school.sba.exception.ScheduleExceededException;
 import com.school.sba.exception.ScheduleNotFoundByIdException;
@@ -109,5 +110,11 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 	public ResponseEntity<Object> handleScheduleNotFoundById(ScheduleNotFoundByIdException ex)
 	{
 		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Schedule with given Id not found, please provide a valid Schedule Id");
+	}
+	
+	@ExceptionHandler(InvalidProgramTypeException.class)
+	public ResponseEntity<Object> handleInvalidProgramType(InvalidProgramTypeException ex)
+	{
+		return exceptionStructure(HttpStatus.BAD_GATEWAY, ex.getMessage(), "Invalid Program Type, please provide the Program Type as UNDERGRADUATE, GRADUATE, POSTGRADUATE, CERTIFICATE, DIPLOMA or OTHER");
 	}
 }

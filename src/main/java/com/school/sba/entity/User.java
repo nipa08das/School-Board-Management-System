@@ -9,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -41,5 +42,8 @@ public class User {
 	@Enumerated(EnumType.STRING)
 	private UserRole userRole;
 	private boolean isDeleted;
+	
+	@ManyToOne
+	private School school;
 
 }

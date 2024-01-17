@@ -1,10 +1,6 @@
 package com.school.sba.request_dto;
 
-import com.school.sba.enums.UserRole;
-
 import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

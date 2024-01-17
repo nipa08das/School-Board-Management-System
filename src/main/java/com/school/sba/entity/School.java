@@ -1,23 +1,24 @@
 package com.school.sba.entity;
 
+import java.util.List;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-//Lombok annotations
-//@Data - generates getters,setters,toString,equals,hashCode
-//@NoArgsConstructor - generates zero args constructor
-//@AllArgsConstructor - generates parameterized constructor based on the variables present in the class
-
-@Getter  //generates getters
-@Setter  //generates setters
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 
 @Entity
 public class School {
@@ -31,5 +32,7 @@ public class School {
 	
 	@OneToOne
 	private Schedule schedule;
+	@OneToMany(mappedBy = "school")
+	private List<User> users;
 
 }

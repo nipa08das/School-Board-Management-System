@@ -19,6 +19,11 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import com.school.sba.exception.AdminAlreadyExistsException;
 import com.school.sba.exception.InvalidUserRoleException;
+import com.school.sba.exception.ScheduleExceededException;
+import com.school.sba.exception.ScheduleNotFoundByIdException;
+import com.school.sba.exception.ScheduleNotFoundBySchoolIdException;
+import com.school.sba.exception.SchoolNotFoundByIdException;
+import com.school.sba.exception.UnauthorizedException;
 import com.school.sba.exception.UserNotFoundByIdException;
 
 @RestControllerAdvice
@@ -68,5 +73,41 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 	public ResponseEntity<Object> handleUserNotFoundById(UserNotFoundByIdException ex)
 	{
 		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "User with given Id not found, please provide a valid User Id");
+	}
+	
+	@ExceptionHandler
+	public ResponseEntity<Object> handleUnauthorized(UnauthorizedException ex)
+	{
+		return exceptionStructure(HttpStatus.NOT_ACCEPTABLE, ex.getMessage(), "Unauthorized Person");
+	}
+	
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<Object> handleIllegalArgument(IllegalArgumentException ex)
+	{
+		return exceptionStructure(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS, ex.getMessage(), "You can have only one school record in the database");
+	}
+	
+	@ExceptionHandler(SchoolNotFoundByIdException.class)
+	public ResponseEntity<Object> handleSchoolNotFoundById(SchoolNotFoundByIdException ex)
+	{
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "School with given Id not found, please provide a valid School Id");
+	}
+	
+	@ExceptionHandler(ScheduleExceededException.class)
+	public ResponseEntity<Object> handleScheduleExceeded(ScheduleExceededException ex)
+	{
+		return exceptionStructure(HttpStatus.IM_USED, ex.getMessage(), "Schedule already set for the school.");
+	}
+	
+	@ExceptionHandler(ScheduleNotFoundBySchoolIdException.class)
+	public ResponseEntity<Object> handleScheduleNotFoundBySchoolId(ScheduleNotFoundBySchoolIdException ex)
+	{
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Schedule Not present");
+	}
+	
+	@ExceptionHandler(ScheduleNotFoundByIdException.class)
+	public ResponseEntity<Object> handleScheduleNotFoundById(ScheduleNotFoundByIdException ex)
+	{
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Schedule with given Id not found, please provide a valid Schedule Id");
 	}
 }

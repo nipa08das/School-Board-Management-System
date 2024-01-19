@@ -1,7 +1,5 @@
 package com.school.sba.serviceImpl;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -12,6 +10,7 @@ import com.school.sba.entity.User;
 import com.school.sba.enums.UserRole;
 import com.school.sba.exception.AdminAlreadyExistsException;
 import com.school.sba.exception.InvalidUserRoleException;
+import com.school.sba.exception.UniqueConstraintViolationException;
 import com.school.sba.exception.UserNotFoundByIdException;
 import com.school.sba.repository.UserRepository;
 import com.school.sba.request_dto.UserRequest;
@@ -60,7 +59,7 @@ public class UserServiceImpl implements UserService {
 	        User user = userRepository.save(mapToUser(userRequest));
 	        return ResponseEntityProxy.getResponseEntity(HttpStatus.CREATED, "User data saved successfully", mapToUserResponse(user));
 	    } catch (DataIntegrityViolationException ex) {
-	        throw new DataIntegrityViolationException("Uniqueness should me maintained");
+	        throw new UniqueConstraintViolationException("username, email or password is not unique");
 	    }
 	}
 	

@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -17,14 +16,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.school.sba.exception.AcademicProgramNotFoundByIdException;
 import com.school.sba.exception.AdminAlreadyExistsException;
 import com.school.sba.exception.InvalidProgramTypeException;
 import com.school.sba.exception.InvalidUserRoleException;
 import com.school.sba.exception.ScheduleExceededException;
 import com.school.sba.exception.ScheduleNotFoundByIdException;
 import com.school.sba.exception.ScheduleNotFoundBySchoolIdException;
+import com.school.sba.exception.SchoolExceededException;
 import com.school.sba.exception.SchoolNotFoundByIdException;
 import com.school.sba.exception.UnauthorizedException;
+import com.school.sba.exception.UniqueConstraintViolationException;
 import com.school.sba.exception.UserNotFoundByIdException;
 
 @RestControllerAdvice
@@ -64,10 +66,10 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 		return exceptionStructure(HttpStatus.BAD_REQUEST, ex.getMessage(), "Invalid user Role, please provide User Role as Teacher, Student or Admin");
 	}
 	
-	@ExceptionHandler(DataIntegrityViolationException.class)
-	public ResponseEntity<Object> handleDataIntegrityViolation(DataIntegrityViolationException ex)
+	@ExceptionHandler(UniqueConstraintViolationException.class)
+	public ResponseEntity<Object> handleUniqueConstraintViolation(UniqueConstraintViolationException ex)
 	{
-		return exceptionStructure(HttpStatus.BAD_REQUEST, ex.getMessage(), "username, email or password is not unique");
+		return exceptionStructure(HttpStatus.BAD_REQUEST, ex.getMessage(), "Uniqueness should me maintained ");
 	}
 	
 	@ExceptionHandler(UserNotFoundByIdException.class)
@@ -82,8 +84,8 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 		return exceptionStructure(HttpStatus.NOT_ACCEPTABLE, ex.getMessage(), "Unauthorized Person");
 	}
 	
-	@ExceptionHandler(IllegalArgumentException.class)
-	public ResponseEntity<Object> handleIllegalArgument(IllegalArgumentException ex)
+	@ExceptionHandler(SchoolExceededException.class)
+	public ResponseEntity<Object> handleSchoolExceeded(SchoolExceededException ex)
 	{
 		return exceptionStructure(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS, ex.getMessage(), "You can have only one school record in the database");
 	}
@@ -115,6 +117,12 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 	@ExceptionHandler(InvalidProgramTypeException.class)
 	public ResponseEntity<Object> handleInvalidProgramType(InvalidProgramTypeException ex)
 	{
-		return exceptionStructure(HttpStatus.BAD_GATEWAY, ex.getMessage(), "Invalid Program Type, please provide the Program Type as UNDERGRADUATE, GRADUATE, POSTGRADUATE, CERTIFICATE, DIPLOMA or OTHER");
+		return exceptionStructure(HttpStatus.BAD_GATEWAY, ex.getMessage(), "Invalid Program Type, please provide the Program Type as PRIMARY, SECONDARY, HIGHERSECONDARY, UNDERGRADUATE, POSTGRADUATE, DIPLOMA or OTHERS");
+	}
+	
+	@ExceptionHandler(AcademicProgramNotFoundByIdException.class)
+	public ResponseEntity<Object> handleAcademicProgramNotFoundById(AcademicProgramNotFoundByIdException ex)
+	{
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Academic Program with given Id not found, please provide a valid Program Id");
 	}
 }

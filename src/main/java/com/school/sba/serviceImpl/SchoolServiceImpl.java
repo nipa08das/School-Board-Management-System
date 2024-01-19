@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.School;
 import com.school.sba.enums.UserRole;
+import com.school.sba.exception.SchoolExceededException;
 import com.school.sba.exception.UnauthorizedException;
 import com.school.sba.exception.UserNotFoundByIdException;
 import com.school.sba.repository.SchoolRepository;
@@ -59,7 +60,7 @@ public class SchoolServiceImpl implements SchoolService {
 	                        userRepository.save(user);
 	                        return ResponseEntityProxy.getResponseEntity(HttpStatus.CREATED, "School data saved successfully.", mapToSchoolResponse(school));
 	                    } else {
-	                        throw new IllegalArgumentException("Cannot create more than one school.");
+	                        throw new SchoolExceededException("Cannot create more than one school.");
 	                    }
 	                } else {
 	                    throw new UnauthorizedException("Only admins are allowed to create schools.");

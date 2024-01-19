@@ -2,10 +2,11 @@ package com.school.sba.enums;
 
 public enum ProgramType {
 
+	PRIMARY,
+	SECONDARY,
+	HIGHERSECONDARY,
 	UNDERGRADUATE,
-    GRADUATE,
     POSTGRADUATE,
-    CERTIFICATE,
     DIPLOMA,
-    OTHER;
+    OTHERS;
 }

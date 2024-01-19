@@ -1,5 +1,6 @@
 package com.school.sba.serviceImpl;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,7 +33,7 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 	private AcademicProgramRepository academicProgramRepository;
 
 	//Mapper Methods
-	private AcademicProgram mapToAcademicProgram(@Valid AcademicProgramRequest academicProgramRequest)
+	private AcademicProgram mapToAcademicProgram(AcademicProgramRequest academicProgramRequest)
 	{
 		return AcademicProgram.builder()
 				.programType(ProgramType.valueOf(academicProgramRequest.getProgramType().toUpperCase()))
@@ -41,15 +42,21 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 				.endsAt(academicProgramRequest.getEndsAt())
 				.build();
 	}
-	
-	private AcademicProgramResponse mapToAcademicProgramResponse(@Valid AcademicProgram academicProgram)
+
+	public AcademicProgramResponse mapToAcademicProgramResponse(AcademicProgram academicProgram)
 	{
+		List<String> subjectNames = new ArrayList<String>();
+		academicProgram.getSubjects().forEach(subject -> {
+			subjectNames.add(subject.getSubjectName().toUpperCase());
+		});
+		
 		return AcademicProgramResponse.builder()
 				.programId(academicProgram.getProgramId())
 				.programType(academicProgram.getProgramType())
 				.programName(academicProgram.getProgramName())
 				.beginsAt(academicProgram.getBeginsAt())
 				.endsAt(academicProgram.getEndsAt())
+				.subjectNames(subjectNames)
 				.build();
 	}
 
@@ -58,15 +65,22 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 			@Valid AcademicProgramRequest academicProgramRequest,int schoolId) 
 	{
 		try {
-		ProgramType.valueOf(academicProgramRequest.getProgramType().toUpperCase());
-		return schoolRepository.findById(schoolId)
-				.map(school -> {
-					AcademicProgram academicProgram = mapToAcademicProgram(academicProgramRequest);
-					academicProgram.setSchool(school);
-					academicProgram = academicProgramRepository.save(academicProgram);
-					return ResponseEntityProxy.getResponseEntity(HttpStatus.CREATED, "Academic Program created successfully", mapToAcademicProgramResponse(academicProgram));
-					
-				}).orElseThrow(() -> new SchoolNotFoundByIdException("Invalid School Id"));
+			ProgramType programType = ProgramType.valueOf(academicProgramRequest.getProgramType().toUpperCase());
+			if(EnumSet.allOf(ProgramType.class).contains(programType))
+			{
+				return schoolRepository.findById(schoolId)
+						.map(school -> {
+							AcademicProgram academicProgram = mapToAcademicProgram(academicProgramRequest);
+							academicProgram.setSchool(school);
+							academicProgram = academicProgramRepository.save(academicProgram);
+							return ResponseEntityProxy.getResponseEntity(HttpStatus.CREATED, "Academic Program created successfully", mapToAcademicProgramResponse(academicProgram));
+
+						}).orElseThrow(() -> new SchoolNotFoundByIdException("Invalid School Id"));
+
+			}
+			else {
+				throw new InvalidProgramTypeException("Invalid Program Type");
+			}
 		}
 		catch (IllegalArgumentException | NullPointerException ex) {
 			throw new InvalidProgramTypeException("Invalid Program Type");
@@ -78,11 +92,11 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 		School school = schoolRepository.findById(schoolId).orElseThrow(() -> new SchoolNotFoundByIdException("Invalid School Id"));
 		List<AcademicProgram> academicPrograms = academicProgramRepository.findBySchoolSchoolId(school.getSchoolId());
 		if (academicPrograms.isEmpty()) {
-            return ResponseEntityProxy.getResponseEntity(HttpStatus.NOT_FOUND, "No Academic Program details found", null);
-        } else {
-            List<AcademicProgramResponse> academicProgramsResponse = academicPrograms.stream().map(this::mapToAcademicProgramResponse).collect(Collectors.toList());
-            return ResponseEntityProxy.getResponseEntity(HttpStatus.FOUND, "All Academic Program details found successfully", academicProgramsResponse);
-        }
+			return ResponseEntityProxy.getResponseEntity(HttpStatus.NOT_FOUND, "No Academic Program details found", null);
+		} else {
+			List<AcademicProgramResponse> academicProgramsResponse = academicPrograms.stream().map(this::mapToAcademicProgramResponse).collect(Collectors.toList());
+			return ResponseEntityProxy.getResponseEntity(HttpStatus.FOUND, "All Academic Program details found successfully", academicProgramsResponse);
+		}
 	}
-	
+
 }

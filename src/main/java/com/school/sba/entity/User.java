@@ -51,10 +51,13 @@ public class User {
 	@ManyToOne
 	@JoinColumn(name = "schoolId")
 	private School school;
+	
 	@ManyToMany
 	@JoinTable(name = "user_academicProgram",
 	joinColumns = @JoinColumn(name = "userId"),
 	inverseJoinColumns = @JoinColumn(name = "programId"))
 	private List<AcademicProgram> academicPrograms;
 
+	@ManyToOne
+	private Subject subject;
 }

@@ -12,11 +12,18 @@ import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.AcademicProgram;
 import com.school.sba.entity.Subject;
+import com.school.sba.entity.User;
+import com.school.sba.enums.UserRole;
 import com.school.sba.exception.AcademicProgramNotFoundByIdException;
+import com.school.sba.exception.InvalidUserRoleException;
+import com.school.sba.exception.SubjectNotFoundByIdException;
+import com.school.sba.exception.UserNotFoundByIdException;
 import com.school.sba.repository.AcademicProgramRepository;
 import com.school.sba.repository.SubjectRepository;
+import com.school.sba.repository.UserRepository;
 import com.school.sba.request_dto.SubjectRequest;
 import com.school.sba.response_dto.AcademicProgramResponse;
+import com.school.sba.response_dto.SubjectResponse;
 import com.school.sba.service.SubjectService;
 import com.school.sba.util.ResponseEntityProxy;
 import com.school.sba.util.ResponseStructure;
@@ -29,6 +36,17 @@ public class SubjectServiceImpl implements SubjectService {
 	private AcademicProgramRepository academicProgramRepository;
 	@Autowired
 	private AcademicProgramServiceImpl academicProgramServiceImpl;
+	@Autowired
+	private UserRepository userRepository;
+	
+	//Mapper Method
+	private SubjectResponse mapToSubjectResponse(Subject subject)
+	{
+		return SubjectResponse.builder()
+				.subjectId(subject.getSubjectId())
+				.subjectName(subject.getSubjectName())
+				.build();
+	}
 
 	@Override
 	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> addSubjectsToAcademicProgram(SubjectRequest subjectRequest,int programId) 
@@ -86,5 +104,32 @@ public class SubjectServiceImpl implements SubjectService {
 		academicProgram = academicProgramRepository.save(academicProgram);
 		return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Subject List of Academic Program updated successfully.", academicProgramServiceImpl.mapToAcademicProgramResponse(academicProgram));
 
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<List<SubjectResponse>>> findAllSubjects()
+	{
+		List<Subject> subjects = subjectRepository.findAll();
+		List<SubjectResponse> subjectResponses = subjects.stream().map(this::mapToSubjectResponse).collect(Collectors.toList());
+		return ResponseEntityProxy.getResponseEntity(HttpStatus.FOUND, "All the subjects found successfully.", subjectResponses);
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<SubjectResponse>> addSubjectToTeacher(int subjectId, int userId) 
+	{
+		User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
+			
+		if(user.getUserRole().equals(UserRole.TEACHER))
+		{
+			return subjectRepository.findById(subjectId).map(subject -> {
+				user.setSubject(subject);
+				userRepository.save(user);
+				return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Subject added to the User successfully.", mapToSubjectResponse(subject));
+			}).orElseThrow(() -> new SubjectNotFoundByIdException("Invalid Subject Id"));
+		}
+		else {
+			throw new InvalidUserRoleException("Subjects should be assigned to Teacher only");
+		}
+			
 	}
 }

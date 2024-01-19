@@ -22,4 +22,5 @@ public class UserResponse {
 	private long contactNo;
 	private String email;
 	private UserRole userRole;
+	
 }

@@ -6,10 +6,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.school.sba.entity.School;
 import com.school.sba.entity.User;
 import com.school.sba.enums.UserRole;
 import com.school.sba.exception.AdminAlreadyExistsException;
 import com.school.sba.exception.InvalidUserRoleException;
+import com.school.sba.exception.UnauthorizedException;
 import com.school.sba.exception.UniqueConstraintViolationException;
 import com.school.sba.exception.UserNotFoundByIdException;
 import com.school.sba.repository.UserRepository;
@@ -41,7 +43,7 @@ public class UserServiceImpl implements UserService {
 				.build();
 	}
 	
-	private UserResponse mapToUserResponse(User user) 
+	public UserResponse mapToUserResponse(User user) 
 	{
 		return UserResponse.builder()
 				.userId(user.getUserId())
@@ -54,9 +56,11 @@ public class UserServiceImpl implements UserService {
 				.build();
 	}
 	
-	private ResponseEntity<ResponseStructure<UserResponse>> saveUser(UserRequest userRequest, UserRole role) {
+	private ResponseEntity<ResponseStructure<UserResponse>> saveUser(UserRequest userRequest, UserRole role, School school) {
 	    try {
-	        User user = userRepository.save(mapToUser(userRequest));
+	    	User user = mapToUser(userRequest);
+	    	user.setSchool(school);
+	        user = userRepository.save(user);
 	        return ResponseEntityProxy.getResponseEntity(HttpStatus.CREATED, "User data saved successfully", mapToUserResponse(user));
 	    } catch (DataIntegrityViolationException ex) {
 	        throw new UniqueConstraintViolationException("username, email or password is not unique");
@@ -65,20 +69,40 @@ public class UserServiceImpl implements UserService {
 	
 	private ResponseEntity<ResponseStructure<UserResponse>> registerAdmin(UserRequest userRequest) {
 	    if (!userRepository.existsByUserRole(UserRole.ADMIN)) {
-	        return saveUser(userRequest, UserRole.ADMIN);
+	        return saveUser(userRequest, UserRole.ADMIN, null);
 	    } else {
 	        throw new AdminAlreadyExistsException("Admin Already Exists");
 	    }
 	}
 	
 	@Override
-	public ResponseEntity<ResponseStructure<UserResponse>> registerUser(@Valid UserRequest userRequest) {
+	public ResponseEntity<ResponseStructure<UserResponse>> registerUser(@Valid UserRequest userRequest,Integer userId) {
+				
 	    try {
 	        UserRole role = UserRole.valueOf(userRequest.getUserRole().toUpperCase());
 
-	        if (role.equals(UserRole.TEACHER) || role.equals(UserRole.STUDENT)) {
-	            return saveUser(userRequest, role);
-	        } else if (role.equals(UserRole.ADMIN)) {
+	        if (role.equals(UserRole.TEACHER) || role.equals(UserRole.STUDENT))
+	        {
+	        	if(userId!=null)
+	    		{
+	    			return userRepository.findById(userId).map(user -> {
+	    				if(user.getUserRole().equals(UserRole.ADMIN))
+	    				{
+	    					 return saveUser(userRequest, role, user.getSchool());
+	    				}
+	    				else
+	    				{
+	    					throw new UnauthorizedException("Only Admin can create users");
+	    				}
+	    			}).orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
+	    		}
+	        	else
+	        	{
+	        		throw new UnauthorizedException("Give User Id of Admin to create the users");
+	        	}
+	        	   
+	        } 
+	        else if (role.equals(UserRole.ADMIN)) {
 	            return registerAdmin(userRequest);
 	        } else {
 	            throw new InvalidUserRoleException("Invalid User Role");

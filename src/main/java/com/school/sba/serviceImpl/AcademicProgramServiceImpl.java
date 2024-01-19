@@ -12,11 +12,17 @@ import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.AcademicProgram;
 import com.school.sba.entity.School;
+import com.school.sba.entity.User;
 import com.school.sba.enums.ProgramType;
+import com.school.sba.enums.UserRole;
+import com.school.sba.exception.AcademicProgramNotFoundByIdException;
 import com.school.sba.exception.InvalidProgramTypeException;
+import com.school.sba.exception.InvalidUserRoleException;
 import com.school.sba.exception.SchoolNotFoundByIdException;
+import com.school.sba.exception.UserNotFoundByIdException;
 import com.school.sba.repository.AcademicProgramRepository;
 import com.school.sba.repository.SchoolRepository;
+import com.school.sba.repository.UserRepository;
 import com.school.sba.request_dto.AcademicProgramRequest;
 import com.school.sba.response_dto.AcademicProgramResponse;
 import com.school.sba.service.AcademicProgramService;
@@ -31,6 +37,8 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 	private SchoolRepository schoolRepository;
 	@Autowired
 	private AcademicProgramRepository academicProgramRepository;
+	@Autowired
+	private UserRepository userRepository;
 
 	//Mapper Methods
 	private AcademicProgram mapToAcademicProgram(AcademicProgramRequest academicProgramRequest)
@@ -46,9 +54,11 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 	public AcademicProgramResponse mapToAcademicProgramResponse(AcademicProgram academicProgram)
 	{
 		List<String> subjectNames = new ArrayList<String>();
-		academicProgram.getSubjects().forEach(subject -> {
-			subjectNames.add(subject.getSubjectName().toUpperCase());
-		});
+		if(academicProgram.getSubjects()!=null) {
+			academicProgram.getSubjects().forEach(subject -> {
+				subjectNames.add(subject.getSubjectName().toUpperCase());
+			});
+		}
 		
 		return AcademicProgramResponse.builder()
 				.programId(academicProgram.getProgramId())
@@ -68,15 +78,13 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 			ProgramType programType = ProgramType.valueOf(academicProgramRequest.getProgramType().toUpperCase());
 			if(EnumSet.allOf(ProgramType.class).contains(programType))
 			{
-				return schoolRepository.findById(schoolId)
-						.map(school -> {
-							AcademicProgram academicProgram = mapToAcademicProgram(academicProgramRequest);
-							academicProgram.setSchool(school);
-							academicProgram = academicProgramRepository.save(academicProgram);
-							return ResponseEntityProxy.getResponseEntity(HttpStatus.CREATED, "Academic Program created successfully", mapToAcademicProgramResponse(academicProgram));
 
-						}).orElseThrow(() -> new SchoolNotFoundByIdException("Invalid School Id"));
+			School school = schoolRepository.findById(schoolId).orElseThrow(() -> new SchoolNotFoundByIdException("Invalid School Id"));
 
+			AcademicProgram academicProgram = mapToAcademicProgram(academicProgramRequest);
+			academicProgram.setSchool(school);
+			academicProgram = academicProgramRepository.save(academicProgram);
+			return ResponseEntityProxy.getResponseEntity(HttpStatus.CREATED, "Academic Program created successfully", mapToAcademicProgramResponse(academicProgram));
 			}
 			else {
 				throw new InvalidProgramTypeException("Invalid Program Type");
@@ -96,6 +104,24 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 		} else {
 			List<AcademicProgramResponse> academicProgramsResponse = academicPrograms.stream().map(this::mapToAcademicProgramResponse).collect(Collectors.toList());
 			return ResponseEntityProxy.getResponseEntity(HttpStatus.FOUND, "All Academic Program details found successfully", academicProgramsResponse);
+		}
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> assignAcademicProgramToUser(int programId,int userId) 
+	{
+		User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
+		if(user.getUserRole().equals(UserRole.TEACHER) || user.getUserRole().equals(UserRole.STUDENT))
+		{
+			return academicProgramRepository.findById(programId).map(academicProgram -> {
+				
+				user.getAcademicPrograms().add(academicProgram);
+				return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Academic Program assigned to user successfully", mapToAcademicProgramResponse(academicProgram));
+				
+			}).orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid Program Id"));
+		}
+		else {
+			throw new InvalidUserRoleException("Only User with User Role Teache or Student can be assigned to an Academic Program");
 		}
 	}
 

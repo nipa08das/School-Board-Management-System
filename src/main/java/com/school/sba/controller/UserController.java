@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.school.sba.request_dto.UserRequest;
@@ -22,9 +23,9 @@ public class UserController {
 	private UserService userService;
 
 	@PostMapping("/users/register")
-	public ResponseEntity<ResponseStructure<UserResponse>> registerUser(@RequestBody @Valid UserRequest userRequest)
+	public ResponseEntity<ResponseStructure<UserResponse>> registerUser(@RequestBody @Valid UserRequest userRequest, @RequestParam(required = false) Integer userId)
 	{
-		return userService.registerUser(userRequest);
+		return userService.registerUser(userRequest,userId);
 	}
 	
 	@DeleteMapping("/users/{userId}")
@@ -38,4 +39,5 @@ public class UserController {
 	{
 		return userService.findUserById(userId);
 	}
+
 }

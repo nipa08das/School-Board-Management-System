@@ -25,4 +25,5 @@ public class AcademicProgramResponse {
 	private LocalTime endsAt;
 	
 	private List<String> subjectNames;
+	
 }

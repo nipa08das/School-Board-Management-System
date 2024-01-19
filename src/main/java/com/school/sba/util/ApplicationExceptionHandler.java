@@ -25,6 +25,7 @@ import com.school.sba.exception.ScheduleNotFoundByIdException;
 import com.school.sba.exception.ScheduleNotFoundBySchoolIdException;
 import com.school.sba.exception.SchoolExceededException;
 import com.school.sba.exception.SchoolNotFoundByIdException;
+import com.school.sba.exception.SubjectNotFoundByIdException;
 import com.school.sba.exception.UnauthorizedException;
 import com.school.sba.exception.UniqueConstraintViolationException;
 import com.school.sba.exception.UserNotFoundByIdException;
@@ -105,7 +106,7 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 	@ExceptionHandler(ScheduleNotFoundBySchoolIdException.class)
 	public ResponseEntity<Object> handleScheduleNotFoundBySchoolId(ScheduleNotFoundBySchoolIdException ex)
 	{
-		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Schedule Not present");
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "schedule with given Id not found, please provide a valid Schedule Id");
 	}
 	
 	@ExceptionHandler(ScheduleNotFoundByIdException.class)
@@ -124,5 +125,11 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 	public ResponseEntity<Object> handleAcademicProgramNotFoundById(AcademicProgramNotFoundByIdException ex)
 	{
 		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Academic Program with given Id not found, please provide a valid Program Id");
+	}
+	
+	@ExceptionHandler(SubjectNotFoundByIdException.class)
+	public ResponseEntity<Object> handleSubjectNotFoundById(SubjectNotFoundByIdException ex)
+	{
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Subject with given Id not found, please provide a valid Subject Id");
 	}
 }

@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import lombok.Getter;
 
 import lombok.Setter;
@@ -23,5 +24,8 @@ public class Subject {
 	
 	@ManyToMany(mappedBy = "subjects")
 	private List<AcademicProgram> programs;
+	
+	@OneToMany(mappedBy = "subject")
+	private List<User> users;
 	
 }

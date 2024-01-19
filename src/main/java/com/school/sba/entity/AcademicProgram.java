@@ -41,8 +41,10 @@ public class AcademicProgram {
 	@ManyToOne
 	@JoinColumn(name = "schoolId")
 	private School school;
+	
 	@ManyToMany(mappedBy = "academicPrograms")
 	private List<User> users;
+	
 	@ManyToMany
 	@JoinTable(name = "academicProgram_subject",
 	joinColumns = @JoinColumn(name = "programId"),inverseJoinColumns = @JoinColumn(name = "subjectId"))

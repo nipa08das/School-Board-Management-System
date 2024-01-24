@@ -3,6 +3,7 @@ package com.school.sba.serviceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.School;
@@ -50,8 +51,10 @@ public class SchoolServiceImpl implements SchoolService {
 	}
 	
 	@Override	
-	public ResponseEntity<ResponseStructure<SchoolResponse>> saveSchool(@Valid SchoolRequest schoolRequest, int userId) {
-	    return userRepository.findById(userId)
+	public ResponseEntity<ResponseStructure<SchoolResponse>> saveSchool(@Valid SchoolRequest schoolRequest) {
+		
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+	    return userRepository.findByUsername(username)
 	            .map(user -> {
 	                if (user.getUserRole().equals(UserRole.ADMIN)) {
 	                    if (user.getSchool() == null) {
@@ -66,7 +69,7 @@ public class SchoolServiceImpl implements SchoolService {
 	                    throw new UnauthorizedException("Only admins are allowed to create schools.");
 	                }
 	            })
-	            .orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
+	            .orElseThrow(() -> new UnauthorizedException("Only admins are allowed to create schools."));
 	}
 
 }

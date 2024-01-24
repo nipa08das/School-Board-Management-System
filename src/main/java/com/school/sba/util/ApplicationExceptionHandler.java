@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -25,6 +26,7 @@ import com.school.sba.exception.ScheduleNotFoundByIdException;
 import com.school.sba.exception.ScheduleNotFoundBySchoolIdException;
 import com.school.sba.exception.SchoolExceededException;
 import com.school.sba.exception.SchoolNotFoundByIdException;
+import com.school.sba.exception.SchoolNotFoundException;
 import com.school.sba.exception.SubjectNotFoundByIdException;
 import com.school.sba.exception.UnauthorizedException;
 import com.school.sba.exception.UniqueConstraintViolationException;
@@ -64,7 +66,7 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 	@ExceptionHandler(InvalidUserRoleException.class)
 	public ResponseEntity<Object> handleInvalidUserRole(InvalidUserRoleException ex)
 	{
-		return exceptionStructure(HttpStatus.BAD_REQUEST, ex.getMessage(), "Invalid user Role, please provide User Role as Teacher, Student or Admin");
+		return exceptionStructure(HttpStatus.BAD_REQUEST, ex.getMessage(), "Invalid user Role");
 	}
 	
 	@ExceptionHandler(UniqueConstraintViolationException.class)
@@ -131,5 +133,17 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 	public ResponseEntity<Object> handleSubjectNotFoundById(SubjectNotFoundByIdException ex)
 	{
 		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Subject with given Id not found, please provide a valid Subject Id");
+	}
+	
+	@ExceptionHandler(UsernameNotFoundException.class)
+	public ResponseEntity<Object> handleUsernameNotFound(UsernameNotFoundException ex)
+	{
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Username not found");
+	}
+	
+	@ExceptionHandler(SchoolNotFoundException.class)
+	public ResponseEntity<Object> handleSchoolNotFound(SchoolNotFoundException ex)
+	{
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "School Not found");
 	}
 }

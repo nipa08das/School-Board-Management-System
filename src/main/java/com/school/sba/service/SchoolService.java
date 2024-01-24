@@ -10,6 +10,6 @@ import jakarta.validation.Valid;
 
 public interface SchoolService {
 
-	ResponseEntity<ResponseStructure<SchoolResponse>> saveSchool(@Valid SchoolRequest schoolRequest, int userId);
+	ResponseEntity<ResponseStructure<SchoolResponse>> saveSchool(@Valid SchoolRequest schoolRequest);
 
 }

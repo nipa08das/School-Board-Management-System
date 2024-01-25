@@ -17,8 +17,11 @@ import com.school.sba.enums.ProgramType;
 import com.school.sba.enums.UserRole;
 import com.school.sba.exception.AcademicProgramNotFoundByIdException;
 import com.school.sba.exception.InvalidProgramTypeException;
+import com.school.sba.exception.InvalidAcademicProgramAssignmentToTeacherException;
 import com.school.sba.exception.InvalidUserRoleException;
 import com.school.sba.exception.SchoolNotFoundByIdException;
+import com.school.sba.exception.SubjectNotAssignedToTeacherException;
+import com.school.sba.exception.SubjectNotFoundInAcademicProgramException;
 import com.school.sba.exception.UserNotFoundByIdException;
 import com.school.sba.repository.AcademicProgramRepository;
 import com.school.sba.repository.SchoolRepository;
@@ -115,13 +118,41 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 		{
 			return academicProgramRepository.findById(programId).map(academicProgram -> {
 				
-				user.getAcademicPrograms().add(academicProgram);
-				return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Academic Program assigned to user successfully", mapToAcademicProgramResponse(academicProgram));
+				if(academicProgram.getSubjects().isEmpty())
+				{
+					throw new SubjectNotFoundInAcademicProgramException("First add subjects to the academic program");
+				}
+				if(user.getUserRole().equals(UserRole.TEACHER))
+				{
+					if(user.getSubject()!= null)
+					{
+						
+						if(academicProgram.getSubjects().contains(user.getSubject()))
+						{
+							user.getAcademicPrograms().add(academicProgram);
+							userRepository.save(user);
+						}
+						else
+						{
+							throw new InvalidAcademicProgramAssignmentToTeacherException("Invalid Academic Program assigned to teacher, please assign a proper academic program which contains subject related to the teacher");
+						}
+					}
+					else
+					{
+						throw new SubjectNotAssignedToTeacherException("Subject has not been assigned to the teacher, first assign a subject to the Teacher");
+					}
+				}
+				else
+				{
+					user.getAcademicPrograms().add(academicProgram);
+					userRepository.save(user);
+				}
+				return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Academic Program assigned to the user successfully", mapToAcademicProgramResponse(academicProgram));
 				
 			}).orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid Program Id"));
 		}
 		else {
-			throw new InvalidUserRoleException("Only User with User Role Teache or Student can be assigned to an Academic Program");
+			throw new InvalidUserRoleException("Only User with User Role Teacher or Student can be assigned to an Academic Program");
 		}
 	}
 

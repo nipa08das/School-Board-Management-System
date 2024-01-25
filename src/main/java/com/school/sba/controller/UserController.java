@@ -22,13 +22,13 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 
-	@PostMapping("/users/register-admin")
+	@PostMapping("/users/register")
 	public ResponseEntity<ResponseStructure<UserResponse>> registerAdmin(@RequestBody @Valid UserRequest userRequest)
 	{
 		return userService.registerAdmin(userRequest);
 	}
 	
-	@PostMapping("/users/register-user")
+	@PostMapping("/users")
 	@PreAuthorize("hasAuthority('ADMIN')")
 	public ResponseEntity<ResponseStructure<UserResponse>> registerUser(@RequestBody @Valid UserRequest userRequest)
 	{

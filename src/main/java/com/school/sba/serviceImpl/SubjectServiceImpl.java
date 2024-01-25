@@ -38,13 +38,13 @@ public class SubjectServiceImpl implements SubjectService {
 	private AcademicProgramServiceImpl academicProgramServiceImpl;
 	@Autowired
 	private UserRepository userRepository;
-	
+
 	//Mapper Method
 	private SubjectResponse mapToSubjectResponse(Subject subject)
 	{
 		return SubjectResponse.builder()
 				.subjectId(subject.getSubjectId())
-				.subjectName(subject.getSubjectName())
+				.subjectName(subject.getSubjectName().toUpperCase())
 				.build();
 	}
 
@@ -79,11 +79,11 @@ public class SubjectServiceImpl implements SubjectService {
 	{
 		AcademicProgram academicProgram = academicProgramRepository.findById(programId)
 				.orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid program Id"));
-		
+
 		Set<String> existingSubjectNames = academicProgram.getSubjects().stream()
 				.map(subject -> subject.getSubjectName()).collect(Collectors.toSet());
-		
-		
+
+
 		for(String subjectName : subjectRequest.getSubjectNames())
 		{
 			if(!existingSubjectNames.contains(subjectName.toLowerCase()))
@@ -97,7 +97,7 @@ public class SubjectServiceImpl implements SubjectService {
 				academicProgram.getSubjects().add(subject);
 			}
 		}
-				
+
 		academicProgram.getSubjects().removeIf(subject ->subjectRequest.getSubjectNames().stream()
 				.noneMatch(subjectName -> subjectName.toLowerCase().equalsIgnoreCase(subject.getSubjectName())));
 
@@ -118,18 +118,23 @@ public class SubjectServiceImpl implements SubjectService {
 	public ResponseEntity<ResponseStructure<SubjectResponse>> addSubjectToTeacher(int subjectId, int userId) 
 	{
 		User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
-			
+
 		if(user.getUserRole().equals(UserRole.TEACHER))
 		{
+
 			return subjectRepository.findById(subjectId).map(subject -> {
+
 				user.setSubject(subject);
 				userRepository.save(user);
-				return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Subject added to the User successfully.", mapToSubjectResponse(subject));
+
+				return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Subject added to the Teacher successfully.", mapToSubjectResponse(subject));
+
+
 			}).orElseThrow(() -> new SubjectNotFoundByIdException("Invalid Subject Id"));
 		}
 		else {
-			throw new InvalidUserRoleException("Subjects should be assigned to Teacher only");
+			throw new InvalidUserRoleException("Subjects should be assigned to Teachers only");
 		}
-			
+
 	}
 }

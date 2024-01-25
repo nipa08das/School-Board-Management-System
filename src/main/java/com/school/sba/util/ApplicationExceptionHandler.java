@@ -19,6 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import com.school.sba.exception.AcademicProgramNotFoundByIdException;
 import com.school.sba.exception.AdminAlreadyExistsException;
+import com.school.sba.exception.InvalidAcademicProgramAssignmentToTeacherException;
 import com.school.sba.exception.InvalidProgramTypeException;
 import com.school.sba.exception.InvalidUserRoleException;
 import com.school.sba.exception.ScheduleExceededException;
@@ -28,9 +29,11 @@ import com.school.sba.exception.SchoolExceededException;
 import com.school.sba.exception.SchoolNotFoundByIdException;
 import com.school.sba.exception.SchoolNotFoundException;
 import com.school.sba.exception.SubjectNotFoundByIdException;
+import com.school.sba.exception.SubjectNotFoundInAcademicProgramException;
 import com.school.sba.exception.UnauthorizedException;
 import com.school.sba.exception.UniqueConstraintViolationException;
 import com.school.sba.exception.UserNotFoundByIdException;
+import com.school.sba.exception.SubjectNotAssignedToTeacherException;
 
 @RestControllerAdvice
 public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
@@ -145,5 +148,23 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 	public ResponseEntity<Object> handleSchoolNotFound(SchoolNotFoundException ex)
 	{
 		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "School Not found");
+	}
+	
+	@ExceptionHandler(SubjectNotFoundInAcademicProgramException.class)
+	public ResponseEntity<Object> handleSubjectNotFoundInAcademicProgram(SubjectNotFoundInAcademicProgramException ex)
+	{
+		return exceptionStructure(HttpStatus.BAD_REQUEST, ex.getMessage(), "Subjects are not associated with the academic program");
+	}
+	
+	@ExceptionHandler(InvalidAcademicProgramAssignmentToTeacherException.class)
+	public ResponseEntity<Object> handleInvalidAcademicProgramAssignmentToTeacher(InvalidAcademicProgramAssignmentToTeacherException ex)
+	{
+		return exceptionStructure(HttpStatus.BAD_REQUEST, ex.getMessage(), "Invalid Academic Program Assigned to Teacher");
+	}
+	
+	@ExceptionHandler(SubjectNotAssignedToTeacherException.class)
+	public ResponseEntity<Object> handleSubjectNotAssignedToTeacher(SubjectNotAssignedToTeacherException ex)
+	{
+		return exceptionStructure(HttpStatus.BAD_REQUEST, ex.getMessage(), "No subject has been assigned to the teacher");
 	}
 }

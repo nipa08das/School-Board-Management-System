@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +25,7 @@ public class AcademicProgramController {
 	private AcademicProgramService academicProgramService;
 
 	@PostMapping("/schools/{schoolId}/academic-programs")
+	@PreAuthorize("hasAuthority('ADMIN')")
 	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> saveAcademicProgram(
 			@RequestBody @Valid AcademicProgramRequest academicProgramRequest,@PathVariable int schoolId)
 	{
@@ -37,6 +39,7 @@ public class AcademicProgramController {
 	}
 	
 	@PutMapping("/academic-programs/{programId}/users/{userId}")
+	@PreAuthorize("hasAuthority('ADMIN')")
 	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> assignAcademicProgramToUser(@PathVariable int programId, @PathVariable int userId)
 	{
 		return academicProgramService.assignAcademicProgramToUser(programId, userId);

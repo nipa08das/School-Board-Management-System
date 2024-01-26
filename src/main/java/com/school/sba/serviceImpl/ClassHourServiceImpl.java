@@ -33,7 +33,7 @@ public class ClassHourServiceImpl implements ClassHourService {
 		LocalTime breakTimeStart = schedule.getBreakTime();
 		LocalTime breakTimeEnd = breakTimeStart.plusMinutes(schedule.getBreakLengthInMinutes().toMinutes());
 		
-		return (currentTime.toLocalTime().equals(breakTimeStart) && currentTime.toLocalTime().isBefore(breakTimeEnd));
+		return (currentTime.toLocalTime().isAfter(breakTimeStart) && currentTime.toLocalTime().isBefore(breakTimeEnd));
 
 	}
 	
@@ -69,41 +69,37 @@ public class ClassHourServiceImpl implements ClassHourService {
 				{
 					for(int hour = 0;hour<classHourPerDay+2;hour++)
 					{
+						ClassHour classHour = new ClassHour();
 						
-						if(!currentTime.toLocalTime().equals(lunchTimeStart))
+						if(!currentTime.toLocalTime().equals(lunchTimeStart) && !isLunchTime(currentTime, schedule))
 						{
-							if(!currentTime.toLocalTime().equals(breakTimeStart))
+							if(!currentTime.toLocalTime().equals(breakTimeStart) && !isBreakTime(currentTime, schedule))
 							{
 								LocalDateTime beginsAt = currentTime;
 								LocalDateTime endsAt = beginsAt.plusMinutes(classHourLength);
 								
-								ClassHour classHour = new ClassHour();
 								classHour.setBeginsAt(beginsAt);
 								classHour.setEndsAt(endsAt);
 								classHour.setClassStatus(ClassStatus.NOT_SCHEDULED);
-								classHourRepository.save(classHour);
 								
 								currentTime = endsAt;
 							}
 							else
 							{
-								ClassHour classHour = new ClassHour();
-								classHour.setBeginsAt(LocalDateTime.now().with(breakTimeStart));
+								classHour.setBeginsAt(currentTime);
 								classHour.setEndsAt(LocalDateTime.now().with(breakTimeEnd));
 								classHour.setClassStatus(ClassStatus.BREAK_TIME);
-								classHourRepository.save(classHour);
 								currentTime = currentTime.plusMinutes(schedule.getBreakLengthInMinutes().toMinutes());
 							}
 						}
 						else
 						{
-							ClassHour classHour = new ClassHour();
-							classHour.setBeginsAt(LocalDateTime.now().with(lunchTimeStart));
+							classHour.setBeginsAt(currentTime);
 							classHour.setEndsAt(LocalDateTime.now().with(lunchTimeEnd));
 							classHour.setClassStatus(ClassStatus.LUNCH_TIME);
-							classHourRepository.save(classHour);
 							currentTime = currentTime.plusMinutes(schedule.getLunchLengthInMinutes().toMinutes());
 						}
+						classHourRepository.save(classHour);
 					}
 					currentTime = currentTime.plusDays(1).with(schedule.getOpensAt());
 				}

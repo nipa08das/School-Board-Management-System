@@ -87,14 +87,14 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 		LocalTime breakTimeStart = schedule.getBreakTime();
 		LocalTime breakTimeEnd = breakTimeStart.plusMinutes(schedule.getBreakLengthInMinutes().toMinutes());
 		
-		return (currentTime.toLocalTime().isAfter(breakTimeStart) && currentTime.toLocalTime().isBefore(breakTimeEnd));
+		return (currentTime.toLocalTime().equals(breakTimeStart) && currentTime.toLocalTime().isBefore(breakTimeEnd));
 
 	}
 	
 	private boolean isLunchTime(LocalDateTime currentTime , Schedule schedule)
 	{
 		LocalTime lunchTimeStart = schedule.getLunchTime();
-		LocalTime lunchTimeEnd = lunchTimeStart.plusMinutes(schedule.getBreakLengthInMinutes().toMinutes());
+		LocalTime lunchTimeEnd = lunchTimeStart.plusMinutes(schedule.getLunchLengthInMinutes().toMinutes());
 		
 		return (currentTime.toLocalTime().isAfter(lunchTimeStart) && currentTime.toLocalTime().isBefore(lunchTimeEnd));
 
@@ -121,13 +121,19 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 					
 					LocalDateTime currentTime = LocalDateTime.now().with(schedule.getOpensAt());
 					
-					for(int day = 0 ; day<7 ; day++)
+					LocalTime lunchTimeStart = schedule.getLunchTime();
+					LocalTime lunchTimeEnd = lunchTimeStart.plusMinutes(schedule.getLunchLengthInMinutes().toMinutes());
+					LocalTime breakTimeStart = schedule.getBreakTime();
+					LocalTime breakTimeEnd = breakTimeStart.plusMinutes(schedule.getBreakLengthInMinutes().toMinutes());
+					
+					for(int day = 1 ; day<=6 ; day++)
 					{
-						for(int hour = 0;hour<classHourPerDay;hour++)
+						for(int hour = 0;hour<classHourPerDay+2;hour++)
 						{
-							if(!isBreakTime(currentTime, schedule))
+							
+							if(!currentTime.toLocalTime().equals(lunchTimeStart))
 							{
-								if(!isLunchTime(currentTime, schedule))
+								if(!currentTime.toLocalTime().equals(breakTimeStart))
 								{
 									LocalDateTime beginsAt = currentTime;
 									LocalDateTime endsAt = beginsAt.plusMinutes(classHourLength);
@@ -141,12 +147,24 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 									currentTime = endsAt;
 								}
 								else
-									currentTime = currentTime.plusMinutes(schedule.getLunchLengthInMinutes().toMinutes());
-								
+								{
+									ClassHour classHour = new ClassHour();
+									classHour.setBeginsAt(LocalDateTime.now().with(breakTimeStart));
+									classHour.setEndsAt(LocalDateTime.now().with(breakTimeEnd));
+									classHour.setClassStatus(ClassStatus.BREAK_TIME);
+									classHourRepository.save(classHour);
+									currentTime = currentTime.plusMinutes(schedule.getBreakLengthInMinutes().toMinutes());
+								}
 							}
 							else
-								currentTime = currentTime.plusMinutes(schedule.getBreakLengthInMinutes().toMinutes());
-					
+							{
+								ClassHour classHour = new ClassHour();
+								classHour.setBeginsAt(LocalDateTime.now().with(lunchTimeStart));
+								classHour.setEndsAt(LocalDateTime.now().with(lunchTimeEnd));
+								classHour.setClassStatus(ClassStatus.LUNCH_TIME);
+								classHourRepository.save(classHour);
+								currentTime = currentTime.plusMinutes(schedule.getLunchLengthInMinutes().toMinutes());
+							}
 						}
 						currentTime = currentTime.plusDays(1).with(schedule.getOpensAt());
 					}

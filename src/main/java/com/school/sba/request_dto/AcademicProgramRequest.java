@@ -1,6 +1,6 @@
 package com.school.sba.request_dto;
 
-import java.time.LocalTime;
+import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -16,7 +16,7 @@ public class AcademicProgramRequest {
 	@NotBlank(message = "Program Name is required")
 	private String programName;
 	@NotNull(message = "beginsAt is required")
-	private LocalTime beginsAt;
+	private LocalDate beginsAt;
 	@NotNull(message = "endsAt is required")
-	private LocalTime endsAt;
+	private LocalDate endsAt;
 }

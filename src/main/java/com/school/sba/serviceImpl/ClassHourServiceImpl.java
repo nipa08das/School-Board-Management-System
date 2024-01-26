@@ -99,6 +99,7 @@ public class ClassHourServiceImpl implements ClassHourService {
 							classHour.setClassStatus(ClassStatus.LUNCH_TIME);
 							currentTime = currentTime.plusMinutes(schedule.getLunchLengthInMinutes().toMinutes());
 						}
+						classHour.setAcademicProgram(academicProgarm);
 						classHourRepository.save(classHour);
 					}
 					currentTime = currentTime.plusDays(1).with(schedule.getOpensAt());
@@ -108,7 +109,7 @@ public class ClassHourServiceImpl implements ClassHourService {
 			else
 				throw new ScheduleNotFoundBySchoolIdException("The school does not contain any schedule, please provide a schedule to the school");
 			
-			return ResponseEntityProxy.getResponseEntity(HttpStatus.CREATED, "ClassHour generated successfully for the academic progarm","");
+			return ResponseEntityProxy.getResponseEntity(HttpStatus.CREATED, "ClassHour generated successfully for the academic progarm","Class Hour generated for the current week successfully");
 		})
 		.orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid Program Id"));
 	}

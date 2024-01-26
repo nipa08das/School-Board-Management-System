@@ -28,4 +28,6 @@ public class Subject {
 	@OneToMany(mappedBy = "subject")
 	private List<User> users;
 	
+	@OneToMany(mappedBy = "subject")
+	private List<ClassHour> classHours;
 }

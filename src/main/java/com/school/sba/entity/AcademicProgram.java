@@ -15,6 +15,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -49,5 +50,8 @@ public class AcademicProgram {
 	@JoinTable(name = "academicProgram_subject",
 	joinColumns = @JoinColumn(name = "programId"),inverseJoinColumns = @JoinColumn(name = "subjectId"))
 	private List<Subject> subjects;
+	
+	@OneToMany(mappedBy = "academicProgram")
+	private List<ClassHour> classHours;
 	
 }

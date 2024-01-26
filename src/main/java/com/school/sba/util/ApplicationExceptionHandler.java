@@ -111,7 +111,7 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 	@ExceptionHandler(ScheduleNotFoundBySchoolIdException.class)
 	public ResponseEntity<Object> handleScheduleNotFoundBySchoolId(ScheduleNotFoundBySchoolIdException ex)
 	{
-		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "schedule with given Id not found, please provide a valid Schedule Id");
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "No schedule is associated with the given school");
 	}
 	
 	@ExceptionHandler(ScheduleNotFoundByIdException.class)

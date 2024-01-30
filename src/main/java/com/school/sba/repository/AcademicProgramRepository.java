@@ -9,4 +9,5 @@ import com.school.sba.entity.AcademicProgram;
 public interface AcademicProgramRepository extends JpaRepository<AcademicProgram, Integer> {
 
 	List<AcademicProgram> findBySchoolSchoolId(int schoolId);
+
 }

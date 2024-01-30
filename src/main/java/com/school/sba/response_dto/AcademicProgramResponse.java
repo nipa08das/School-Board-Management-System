@@ -3,6 +3,7 @@ package com.school.sba.response_dto;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.school.sba.entity.User;
 import com.school.sba.enums.ProgramType;
 
 import lombok.AllArgsConstructor;

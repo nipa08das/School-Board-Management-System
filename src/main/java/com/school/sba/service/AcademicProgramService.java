@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.school.sba.request_dto.AcademicProgramRequest;
 import com.school.sba.response_dto.AcademicProgramResponse;
+import com.school.sba.response_dto.UserResponse;
 import com.school.sba.util.ResponseStructure;
 
 import jakarta.validation.Valid;
@@ -18,5 +19,8 @@ public interface AcademicProgramService {
 	ResponseEntity<ResponseStructure<List<AcademicProgramResponse>>> findAllAcademicProgram(int schoolId);
 
 	ResponseEntity<ResponseStructure<AcademicProgramResponse>> assignAcademicProgramToUser(int programId, int userId);
+
+	ResponseEntity<ResponseStructure<List<UserResponse>>> findAllUserInAcademicProgram(int programId,
+			String userRole);
 
 }

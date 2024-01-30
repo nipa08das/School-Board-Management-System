@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.school.sba.request_dto.AcademicProgramRequest;
 import com.school.sba.response_dto.AcademicProgramResponse;
+import com.school.sba.response_dto.UserResponse;
 import com.school.sba.service.AcademicProgramService;
 import com.school.sba.util.ResponseStructure;
 
@@ -43,5 +44,11 @@ public class AcademicProgramController {
 	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> assignAcademicProgramToUser(@PathVariable int programId, @PathVariable int userId)
 	{
 		return academicProgramService.assignAcademicProgramToUser(programId, userId);
+	}
+	
+	@GetMapping("/academic-programs/{programId}/user-roles/{userRole}/users")
+	public ResponseEntity<ResponseStructure<List<UserResponse>>> findAllUserInAcademicProgram(@PathVariable int programId, @PathVariable String userRole)
+	{
+		return academicProgramService.findAllUserInAcademicProgram(programId, userRole);
 	}
 }

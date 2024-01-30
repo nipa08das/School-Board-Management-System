@@ -18,7 +18,11 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.school.sba.exception.AcademicProgramNotFoundByIdException;
+import com.school.sba.exception.AcademicProgramNotFoundBySchoolIdException;
 import com.school.sba.exception.AdminAlreadyExistsException;
+import com.school.sba.exception.ClassHourNotFoundByIdException;
+import com.school.sba.exception.DuplicateClassHourException;
+import com.school.sba.exception.InvalidAacdemicProgramException;
 import com.school.sba.exception.InvalidAcademicProgramAssignmentToTeacherException;
 import com.school.sba.exception.InvalidProgramTypeException;
 import com.school.sba.exception.InvalidUserRoleException;
@@ -33,6 +37,7 @@ import com.school.sba.exception.SubjectNotFoundInAcademicProgramException;
 import com.school.sba.exception.UnauthorizedException;
 import com.school.sba.exception.UniqueConstraintViolationException;
 import com.school.sba.exception.UserNotFoundByIdException;
+import com.school.sba.exception.UserNotFoundInAcademicProgramException;
 import com.school.sba.exception.SubjectNotAssignedToTeacherException;
 
 @RestControllerAdvice
@@ -132,6 +137,12 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Academic Program with given Id not found, please provide a valid Program Id");
 	}
 	
+	@ExceptionHandler(AcademicProgramNotFoundBySchoolIdException.class)
+	public ResponseEntity<Object> handleAcademicProgramNotFoundBySchoolId(AcademicProgramNotFoundBySchoolIdException ex)
+	{
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Academic Program not found by the School Id.");
+	}
+	
 	@ExceptionHandler(SubjectNotFoundByIdException.class)
 	public ResponseEntity<Object> handleSubjectNotFoundById(SubjectNotFoundByIdException ex)
 	{
@@ -166,5 +177,29 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 	public ResponseEntity<Object> handleSubjectNotAssignedToTeacher(SubjectNotAssignedToTeacherException ex)
 	{
 		return exceptionStructure(HttpStatus.BAD_REQUEST, ex.getMessage(), "No subject has been assigned to the teacher");
+	}
+	
+	@ExceptionHandler(ClassHourNotFoundByIdException.class)
+	public ResponseEntity<Object> handleClassHourNotFoundById(ClassHourNotFoundByIdException ex)
+	{
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Class Hour with given Id not found, please provide a valid Class Hour Id");
+	}
+	
+	@ExceptionHandler(DuplicateClassHourException.class)
+	public ResponseEntity<Object> handleDuplicateClassHour(DuplicateClassHourException ex)
+	{
+		return exceptionStructure(HttpStatus.IM_USED, ex.getMessage(), "Duplicate Class Hour, please provide a different Class Hour");
+	}
+	
+	@ExceptionHandler(InvalidAacdemicProgramException.class)
+	public ResponseEntity<Object> handleInvalidAcademicProgram(InvalidAacdemicProgramException ex)
+	{
+		return exceptionStructure(HttpStatus.BAD_REQUEST, ex.getMessage(), "Invalid Academic Program ");
+	}
+	
+	@ExceptionHandler(UserNotFoundInAcademicProgramException.class)
+	public ResponseEntity<Object> handleUserNotFoundInAcademicProgram(UserNotFoundInAcademicProgramException ex)
+	{
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Users not found in the Academic Program");
 	}
 }

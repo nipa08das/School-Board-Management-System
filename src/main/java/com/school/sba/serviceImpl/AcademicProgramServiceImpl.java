@@ -16,6 +16,7 @@ import com.school.sba.entity.User;
 import com.school.sba.enums.ProgramType;
 import com.school.sba.enums.UserRole;
 import com.school.sba.exception.AcademicProgramNotFoundByIdException;
+import com.school.sba.exception.AcademicProgramNotFoundBySchoolIdException;
 import com.school.sba.exception.InvalidProgramTypeException;
 import com.school.sba.exception.InvalidAcademicProgramAssignmentToTeacherException;
 import com.school.sba.exception.InvalidUserRoleException;
@@ -23,11 +24,13 @@ import com.school.sba.exception.SchoolNotFoundByIdException;
 import com.school.sba.exception.SubjectNotAssignedToTeacherException;
 import com.school.sba.exception.SubjectNotFoundInAcademicProgramException;
 import com.school.sba.exception.UserNotFoundByIdException;
+import com.school.sba.exception.UserNotFoundInAcademicProgramException;
 import com.school.sba.repository.AcademicProgramRepository;
 import com.school.sba.repository.SchoolRepository;
 import com.school.sba.repository.UserRepository;
 import com.school.sba.request_dto.AcademicProgramRequest;
 import com.school.sba.response_dto.AcademicProgramResponse;
+import com.school.sba.response_dto.UserResponse;
 import com.school.sba.service.AcademicProgramService;
 import com.school.sba.util.ResponseEntityProxy;
 import com.school.sba.util.ResponseStructure;
@@ -42,6 +45,8 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 	private AcademicProgramRepository academicProgramRepository;
 	@Autowired
 	private UserRepository userRepository;
+	@Autowired
+	private UserServiceImpl userServiceImpl;
 
 	//Mapper Methods
 	private AcademicProgram mapToAcademicProgram(AcademicProgramRequest academicProgramRequest)
@@ -104,7 +109,7 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 		School school = schoolRepository.findById(schoolId).orElseThrow(() -> new SchoolNotFoundByIdException("Invalid School Id"));
 		List<AcademicProgram> academicPrograms = academicProgramRepository.findBySchoolSchoolId(school.getSchoolId());
 		if (academicPrograms.isEmpty()) {
-			return ResponseEntityProxy.getResponseEntity(HttpStatus.NOT_FOUND, "No Academic Program details found", null);
+			throw new AcademicProgramNotFoundBySchoolIdException("No Academic Program details found");
 		} else {
 			List<AcademicProgramResponse> academicProgramsResponse = academicPrograms.stream().map(this::mapToAcademicProgramResponse).collect(Collectors.toList());
 			return ResponseEntityProxy.getResponseEntity(HttpStatus.FOUND, "All Academic Program details found successfully", academicProgramsResponse);
@@ -155,6 +160,34 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 		else {
 			throw new InvalidUserRoleException("Only User with User Role Teacher or Student can be assigned to an Academic Program");
 		}
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<List<UserResponse>>> findAllUserInAcademicProgram(int programId,String userRole)
+	{
+		try {
+			UserRole role = UserRole.valueOf(userRole.toUpperCase());
+			
+			if(role.equals(UserRole.ADMIN))
+			
+				throw new InvalidUserRoleException("Academic programs can be associated to Teachers and Students only, Admins are not associated with any Academic Programs.");		
+			
+			AcademicProgram academicProgram = academicProgramRepository.findById(programId).orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid Academic Program Id"));
+			
+			List<User> users = userRepository.findByAcademicPrograms_programIdAndUserRole(academicProgram.getProgramId(),role);	
+			
+				if(users.isEmpty())
+				
+					throw new UserNotFoundInAcademicProgramException("There are no users associated with the academic program "+academicProgram.getProgramId()+" with role "+role);
+				
+				else {
+					List<UserResponse> userResponses = users.stream().map(userServiceImpl::mapToUserResponse).collect(Collectors.toList());
+					return ResponseEntityProxy.getResponseEntity(HttpStatus.FOUND, "All the users fetched successfully",userResponses );
+				}
+		}catch (IllegalArgumentException | NullPointerException ex) {
+			throw new InvalidUserRoleException("Invalid user Role, please provide User Role as Teacher or Student");
+		}	
+
 	}
 
 }

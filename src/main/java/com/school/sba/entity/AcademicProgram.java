@@ -8,6 +8,7 @@ import com.school.sba.enums.ProgramType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,12 +39,13 @@ public class AcademicProgram {
 	private String programName;
 	private LocalDate beginsAt;
 	private LocalDate endsAt;
+	private boolean isDeleted;
 	
 	@ManyToOne
 	@JoinColumn(name = "schoolId")
 	private School school;
 	
-	@ManyToMany(mappedBy = "academicPrograms")
+	@ManyToMany(mappedBy = "academicPrograms", fetch = FetchType.EAGER)
 	private List<User> users;
 	
 	@ManyToMany
@@ -51,7 +53,7 @@ public class AcademicProgram {
 	joinColumns = @JoinColumn(name = "programId"),inverseJoinColumns = @JoinColumn(name = "subjectId"))
 	private List<Subject> subjects;
 	
-	@OneToMany(mappedBy = "academicProgram")
+	@OneToMany(mappedBy = "academicProgram", fetch = FetchType.EAGER)
 	private List<ClassHour> classHours;
 	
 }

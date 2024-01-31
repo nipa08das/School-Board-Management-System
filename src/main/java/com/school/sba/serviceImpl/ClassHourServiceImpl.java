@@ -59,6 +59,9 @@ public class ClassHourServiceImpl implements ClassHourService {
 	{
 		return academicProgramRepository.findById(programId)
 				.map(academicProgarm -> {
+					if(academicProgarm.isDeleted())
+						throw new AcademicProgramNotFoundByIdException("Invalid Program Id");
+					
 					School school = academicProgarm.getSchool();
 					Schedule schedule = school.getSchedule();
 					if(schedule!=null)
@@ -116,7 +119,7 @@ public class ClassHourServiceImpl implements ClassHourService {
 					else
 						throw new ScheduleNotFoundBySchoolIdException("The school does not contain any schedule, please provide a schedule to the school");
 
-					return ResponseEntityProxy.getResponseEntity(HttpStatus.CREATED, "ClassHour generated successfully for the academic progarm","Class Hour generated for the current week successfully");
+					return ResponseEntityProxy.getResponseEntity(HttpStatus.CREATED, "Class Hour generated successfully for the academic progarm","Class Hour generated for the current week successfully");
 				})
 				.orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid Program Id"));
 	}
@@ -135,7 +138,6 @@ public class ClassHourServiceImpl implements ClassHourService {
 			{
 				if(user.getAcademicPrograms().contains(classHour.getAcademicProgram()))
 				{
-
 					LocalDateTime beginsAt = classHour.getBeginsAt();
 					LocalDateTime endsAt = classHour.getEndsAt();
 					int roomNo = classHourRequest.getRoomNo();
@@ -153,9 +155,8 @@ public class ClassHourServiceImpl implements ClassHourService {
 						throw new DuplicateClassHourException("Another Class Hour already allotted for the same date and time in the given room.");
 
 				}else
-				{
 					throw new InvalidAacdemicProgramException("The user's Academic Program is not same as the Class Hour's Academic Program.");
-				}
+				
 			}
 			else 
 				throw new InvalidUserRoleException("Only Teachers can be alloted to a Class Hour");

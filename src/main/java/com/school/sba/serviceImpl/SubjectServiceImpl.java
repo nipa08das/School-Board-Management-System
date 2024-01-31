@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import com.school.sba.entity.AcademicProgram;
 import com.school.sba.entity.Subject;
-import com.school.sba.entity.User;
 import com.school.sba.enums.UserRole;
 import com.school.sba.exception.AcademicProgramNotFoundByIdException;
 import com.school.sba.exception.InvalidUserRoleException;
@@ -52,6 +51,9 @@ public class SubjectServiceImpl implements SubjectService {
 	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> addSubjectsToAcademicProgram(SubjectRequest subjectRequest,int programId) 
 	{
 		return academicProgramRepository.findById(programId).map(academicProgram -> {
+			if(academicProgram.isDeleted())
+				throw new AcademicProgramNotFoundByIdException("Invalid Program Id");
+
 			List<Subject> subjects = new ArrayList<Subject>(); 
 
 			subjectRequest.getSubjectNames().forEach(subjectName -> {
@@ -78,6 +80,11 @@ public class SubjectServiceImpl implements SubjectService {
 	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> updateSubjectsToAcademicProgram(SubjectRequest subjectRequest,int programId)
 	{
 		AcademicProgram academicProgram = academicProgramRepository.findById(programId)
+				.map(program -> {
+					if(program.isDeleted())
+						throw new AcademicProgramNotFoundByIdException("Invalid program Id");
+					return program;
+				})
 				.orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid program Id"));
 
 		Set<String> existingSubjectNames = academicProgram.getSubjects().stream()
@@ -117,24 +124,25 @@ public class SubjectServiceImpl implements SubjectService {
 	@Override
 	public ResponseEntity<ResponseStructure<SubjectResponse>> addSubjectToTeacher(int subjectId, int userId) 
 	{
-		User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
+		return userRepository.findById(userId).map(user -> {
+			if(user.isDeleted())
+				throw new UserNotFoundByIdException("Invalid User Id");
 
-		if(user.getUserRole().equals(UserRole.TEACHER))
-		{
+			if(user.getUserRole().equals(UserRole.TEACHER))
+			{
+				return subjectRepository.findById(subjectId).map(subject -> {
 
-			return subjectRepository.findById(subjectId).map(subject -> {
+					user.setSubject(subject);
+					userRepository.save(user);
 
-				user.setSubject(subject);
-				userRepository.save(user);
+					return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Subject added to the Teacher successfully.", mapToSubjectResponse(subject));
 
-				return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Subject added to the Teacher successfully.", mapToSubjectResponse(subject));
+				}).orElseThrow(() -> new SubjectNotFoundByIdException("Invalid Subject Id"));
+			}
+			else 
+				throw new InvalidUserRoleException("Subjects should be assigned to Teachers only");
 
-
-			}).orElseThrow(() -> new SubjectNotFoundByIdException("Invalid Subject Id"));
-		}
-		else {
-			throw new InvalidUserRoleException("Subjects should be assigned to Teachers only");
-		}
-
+		}).orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
 	}
+
 }

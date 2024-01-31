@@ -12,4 +12,6 @@ public interface SchoolService {
 
 	ResponseEntity<ResponseStructure<SchoolResponse>> saveSchool(@Valid SchoolRequest schoolRequest);
 
+	ResponseEntity<ResponseStructure<SchoolResponse>> deleteSchool(int schoolId);
+
 }

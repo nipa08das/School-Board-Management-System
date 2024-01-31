@@ -77,7 +77,7 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 				.subjectNames(subjectNames)
 				.build();
 	}
-	
+
 
 	@Override
 	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> saveAcademicProgram(
@@ -89,7 +89,7 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 			{
 
 				School school = schoolRepository.findById(schoolId).orElseThrow(() -> new SchoolNotFoundByIdException("Invalid School Id"));
-				
+
 				AcademicProgram academicProgram = mapToAcademicProgram(academicProgramRequest);
 				academicProgram.setSchool(school);
 				academicProgram = academicProgramRepository.save(academicProgram);
@@ -106,60 +106,74 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 
 	@Override
 	public ResponseEntity<ResponseStructure<List<AcademicProgramResponse>>> findAllAcademicProgram(int schoolId) {
-		School school = schoolRepository.findById(schoolId).orElseThrow(() -> new SchoolNotFoundByIdException("Invalid School Id"));
-		List<AcademicProgram> academicPrograms = academicProgramRepository.findBySchoolSchoolId(school.getSchoolId());
-		if (academicPrograms.isEmpty()) {
-			throw new AcademicProgramNotFoundBySchoolIdException("No Academic Program details found");
-		} else {
-			List<AcademicProgramResponse> academicProgramsResponse = academicPrograms.stream().map(this::mapToAcademicProgramResponse).collect(Collectors.toList());
-			return ResponseEntityProxy.getResponseEntity(HttpStatus.FOUND, "All Academic Program details found successfully", academicProgramsResponse);
-		}
+		return schoolRepository.findById(schoolId).map(school -> {
+			if(school.isDeleted())
+				throw new SchoolNotFoundByIdException("Invalid School Id");
+
+			List<AcademicProgram> academicPrograms = academicProgramRepository.findBySchoolSchoolId(school.getSchoolId());
+			if (academicPrograms.isEmpty()) {
+				throw new AcademicProgramNotFoundBySchoolIdException("No Academic Program details found");
+			} else {
+				List<AcademicProgramResponse> academicProgramsResponse = academicPrograms.stream()
+						.filter(AcademicProgram -> !AcademicProgram.isDeleted())
+						.map(this::mapToAcademicProgramResponse)
+						.collect(Collectors.toList());
+				return ResponseEntityProxy.getResponseEntity(HttpStatus.FOUND, "All Academic Program details found successfully", academicProgramsResponse);
+			}
+		}).orElseThrow(() -> new SchoolNotFoundByIdException("Invalid School Id"));
 	}
 
 	@Override
 	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> assignAcademicProgramToUser(int programId,int userId) 
 	{
-		User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
-		if(user.getUserRole().equals(UserRole.TEACHER) || user.getUserRole().equals(UserRole.STUDENT))
-		{
-			return academicProgramRepository.findById(programId).map(academicProgram -> {
+		return userRepository.findById(userId).map(user -> {
 
-				if(academicProgram.getSubjects().isEmpty())
+			if(user.isDeleted())
+				throw new UserNotFoundByIdException("Invalid User Id");
 
-					throw new SubjectNotFoundInAcademicProgramException("First add subjects to the academic program");
+			if(user.getUserRole().equals(UserRole.TEACHER) || user.getUserRole().equals(UserRole.STUDENT))
+			{
+				return academicProgramRepository.findById(programId).map(academicProgram -> {
 
-				if(user.getUserRole().equals(UserRole.TEACHER))
-				{
-					if(user.getSubject()!= null)
+					if(academicProgram.isDeleted())
+						throw new AcademicProgramNotFoundByIdException("Invalid Program Id");
+
+					if(academicProgram.getSubjects().isEmpty())
+						throw new SubjectNotFoundInAcademicProgramException("First add subjects to the academic program");
+
+					if(user.getUserRole().equals(UserRole.TEACHER))
 					{
-
-						if(academicProgram.getSubjects().contains(user.getSubject()))
+						if(user.getSubject()!= null)
 						{
-							user.getAcademicPrograms().add(academicProgram);
-							userRepository.save(user);
+
+							if(academicProgram.getSubjects().contains(user.getSubject()))
+							{
+								user.getAcademicPrograms().add(academicProgram);
+								userRepository.save(user);
+							}
+							else
+								throw new InvalidAcademicProgramAssignmentToTeacherException("Invalid Academic Program assigned to teacher, please assign a proper academic program which contains subject related to the teacher");
+
 						}
 						else
-
-							throw new InvalidAcademicProgramAssignmentToTeacherException("Invalid Academic Program assigned to teacher, please assign a proper academic program which contains subject related to the teacher");
+							throw new SubjectNotAssignedToTeacherException("Subject has not been assigned to the teacher, first assign a subject to the Teacher");
 
 					}
 					else
+					{
+						user.getAcademicPrograms().add(academicProgram);
+						userRepository.save(user);
+					}
+					return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Academic Program assigned to the user successfully", mapToAcademicProgramResponse(academicProgram));
 
-						throw new SubjectNotAssignedToTeacherException("Subject has not been assigned to the teacher, first assign a subject to the Teacher");
+				}).orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid Program Id"));
+			}
+			else {
+				throw new InvalidUserRoleException("Only User with User Role Teacher or Student can be assigned to an Academic Program");
+			}
+		})
+				.orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
 
-				}
-				else
-				{
-					user.getAcademicPrograms().add(academicProgram);
-					userRepository.save(user);
-				}
-				return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Academic Program assigned to the user successfully", mapToAcademicProgramResponse(academicProgram));
-
-			}).orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid Program Id"));
-		}
-		else {
-			throw new InvalidUserRoleException("Only User with User Role Teacher or Student can be assigned to an Academic Program");
-		}
 	}
 
 	@Override
@@ -167,27 +181,42 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 	{
 		try {
 			UserRole role = UserRole.valueOf(userRole.toUpperCase());
-			
+
 			if(role.equals(UserRole.ADMIN))
-			
+
 				throw new InvalidUserRoleException("Academic programs can be associated to Teachers and Students only, Admins are not associated with any Academic Programs.");		
-			
+
 			AcademicProgram academicProgram = academicProgramRepository.findById(programId).orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid Academic Program Id"));
-			
-			List<User> users = userRepository.findByAcademicPrograms_programIdAndUserRole(academicProgram.getProgramId(),role);	
-			
-				if(users.isEmpty())
-				
-					throw new UserNotFoundInAcademicProgramException("There are no users associated with the academic program "+academicProgram.getProgramId()+" with role "+role);
-				
-				else {
-					List<UserResponse> userResponses = users.stream().map(userServiceImpl::mapToUserResponse).collect(Collectors.toList());
-					return ResponseEntityProxy.getResponseEntity(HttpStatus.FOUND, "All the users fetched successfully",userResponses );
-				}
+
+			if(academicProgram.isDeleted())
+				throw new AcademicProgramNotFoundByIdException("Invalid Program Id");
+
+			List<User> users = userRepository.findByAcademicProgramsAndUserRole(academicProgram,role);	
+
+			if(users.isEmpty())
+				throw new UserNotFoundInAcademicProgramException("There are no users associated with the academic program "+academicProgram.getProgramId()+" with role "+role);
+
+			else {
+				List<UserResponse> userResponses = users.stream().map(userServiceImpl::mapToUserResponse).collect(Collectors.toList());
+				return ResponseEntityProxy.getResponseEntity(HttpStatus.FOUND, "All the users fetched successfully",userResponses );
+			}
 		}catch (IllegalArgumentException | NullPointerException ex) {
 			throw new InvalidUserRoleException("Invalid user Role, please provide User Role as Teacher or Student");
 		}	
+	}
 
+	@Override
+	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> deleteAcademicProgram(int programId)
+	{
+		return academicProgramRepository.findById(programId).map(academicProgram -> {
+
+			if(academicProgram.isDeleted())
+				throw new AcademicProgramNotFoundByIdException("Invalid Academic Program");
+
+			academicProgram.setDeleted(true);
+			academicProgramRepository.save(academicProgram);
+			return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Academic Program deleted successfully", mapToAcademicProgramResponse(academicProgram));
+		}).orElseThrow(() -> new AcademicProgramNotFoundByIdException("Invalid Academic Program"));
 	}
 
 }

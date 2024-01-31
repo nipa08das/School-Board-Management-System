@@ -23,4 +23,6 @@ public interface AcademicProgramService {
 	ResponseEntity<ResponseStructure<List<UserResponse>>> findAllUserInAcademicProgram(int programId,
 			String userRole);
 
+	ResponseEntity<ResponseStructure<AcademicProgramResponse>> deleteAcademicProgram(int programId);
+
 }

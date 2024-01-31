@@ -49,5 +49,6 @@ public class SubjectController {
 	{
 		return subjectService.addSubjectToTeacher(subjectId,userId);
 	}
+	
 }
 

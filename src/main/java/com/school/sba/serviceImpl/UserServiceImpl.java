@@ -128,16 +128,16 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public ResponseEntity<ResponseStructure<UserResponse>> deleteUser(int userId) 
 	{
-		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
-		if(user.isDeleted())
-		{
-			throw new UserNotFoundByIdException("Invalid User Id");
-		}
-		user.setDeleted(true);
-		userRepository.save(user);
+		return userRepository.findById(userId).map(user -> {
 
-		return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "User data deleted successfully", mapToUserResponse(user));
+			if(user.isDeleted())
+				throw new UserNotFoundByIdException("Invalid User Id");
+
+			user.setDeleted(true);
+			userRepository.save(user);
+			return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "User data deleted successfully", mapToUserResponse(user));
+
+		}).orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
 	}
 
 	@Override
@@ -146,9 +146,8 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new UserNotFoundByIdException("Invalid User Id"));
 		if(user.isDeleted())
-		{
 			throw new UserNotFoundByIdException("Invalid User Id");
-		}
+
 		return ResponseEntityProxy.getResponseEntity(HttpStatus.FOUND, "User data successfully found", mapToUserResponse(user));
 	}
 

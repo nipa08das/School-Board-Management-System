@@ -63,6 +63,9 @@ public class ScheduleServiceImpl implements ScheduleService{
 	public ResponseEntity<ResponseStructure<ScheduleResponse>> saveSchedule(@Valid ScheduleRequest scheduleRequest, int schoolId) {
 	    return schoolRepository.findById(schoolId)
 	            .map(school -> {
+	            	if(school.isDeleted())
+	    				throw new SchoolNotFoundByIdException("Invalid School Id");
+	            	
 	            		if(school.getSchedule() == null)
 		            	{
 	            			Schedule schedule = scheduleRepository.save(mapToSchedule(scheduleRequest));
@@ -83,6 +86,9 @@ public class ScheduleServiceImpl implements ScheduleService{
 	{
 		return schoolRepository.findById(schoolId)
 		.map(school -> {
+			if(school.isDeleted())
+				throw new SchoolNotFoundByIdException("Invalid School Id");
+			
 			Schedule schedule = school.getSchedule();
 			if(schedule != null)
 			{
@@ -109,4 +115,11 @@ public class ScheduleServiceImpl implements ScheduleService{
 		}).orElseThrow(() -> new ScheduleNotFoundByIdException("Invalid Schedule Id"));
 	}
 
+
+	public ResponseEntity<ResponseStructure<ScheduleResponse>> deleteSchedule(Schedule schedule) 
+	{
+		scheduleRepository.delete(schedule);
+		return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Schedule deleted successfully", mapToScheduleResponse(schedule));
+	}
+	
 }

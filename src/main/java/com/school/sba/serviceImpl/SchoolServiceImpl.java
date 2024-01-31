@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import com.school.sba.entity.School;
 import com.school.sba.enums.UserRole;
 import com.school.sba.exception.SchoolExceededException;
+import com.school.sba.exception.SchoolNotFoundByIdException;
 import com.school.sba.exception.UnauthorizedException;
-import com.school.sba.exception.UserNotFoundByIdException;
 import com.school.sba.repository.SchoolRepository;
 import com.school.sba.repository.UserRepository;
 import com.school.sba.request_dto.SchoolRequest;
@@ -70,6 +70,20 @@ public class SchoolServiceImpl implements SchoolService {
 	                }
 	            })
 	            .orElseThrow(() -> new UnauthorizedException("Only admins are allowed to create schools."));
+	}
+
+	@Override
+	public ResponseEntity<ResponseStructure<SchoolResponse>> deleteSchool(int schoolId)
+	{
+		return schoolRepository.findById(schoolId).map(school -> {
+			
+			if(school.isDeleted())
+				throw new SchoolNotFoundByIdException("Invalid School Id");
+			
+			school.setDeleted(true);
+			schoolRepository.save(school);
+			return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "School deleted successfully", mapToSchoolResponse(school));
+		}).orElseThrow(() -> new SchoolNotFoundByIdException("Invalid School Id"));
 	}
 
 }

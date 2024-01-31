@@ -16,5 +16,4 @@ public interface ScheduleService {
 
 	ResponseEntity<ResponseStructure<ScheduleResponse>> updateSchedule(@Valid ScheduleRequest scheduleRequest,int scheduleId);
 
-
 }

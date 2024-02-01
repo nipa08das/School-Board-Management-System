@@ -1,5 +1,8 @@
 package com.school.sba.serviceImpl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -17,6 +20,8 @@ import com.school.sba.exception.InvalidUserRoleException;
 import com.school.sba.exception.SchoolNotFoundException;
 import com.school.sba.exception.UniqueConstraintViolationException;
 import com.school.sba.exception.UserNotFoundByIdException;
+import com.school.sba.repository.AcademicProgramRepository;
+import com.school.sba.repository.ClassHourRepository;
 import com.school.sba.repository.UserRepository;
 import com.school.sba.request_dto.UserRequest;
 import com.school.sba.response_dto.UserResponse;
@@ -32,6 +37,10 @@ public class UserServiceImpl implements UserService {
 	private UserRepository userRepository;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	@Autowired
+	private ClassHourRepository classHourRepository;
+	@Autowired
+	private AcademicProgramRepository academicProgramRepository;
 
 	//Mapper Methods
 	private User mapToUser(@Valid UserRequest userRequest) 
@@ -76,6 +85,24 @@ public class UserServiceImpl implements UserService {
 				throw new UniqueConstraintViolationException("username, email or password is not unique");
 			}
 		}
+	}
+	
+	public void deleteUserIfDeleted()
+	{
+		List<User> usersToDelete = new ArrayList<User>();
+		
+		userRepository.findByIsDeleted(true)
+		.forEach(user ->
+		{
+			user.getClassHours().forEach(classHour -> classHour.setUser(null));
+			classHourRepository.saveAll(user.getClassHours());
+			
+			user.getAcademicPrograms().forEach(academicProgram -> academicProgram.setUsers(null));
+			academicProgramRepository.saveAll(user.getAcademicPrograms());
+			
+			usersToDelete.add(user);
+		});
+		userRepository.deleteAll(usersToDelete);
 	}
 
 	@Override
@@ -130,6 +157,9 @@ public class UserServiceImpl implements UserService {
 	{
 		return userRepository.findById(userId).map(user -> {
 
+			if(user.getUserRole().equals(UserRole.ADMIN))
+				throw new InvalidUserRoleException("Admin cannot be deleted");
+			
 			if(user.isDeleted())
 				throw new UserNotFoundByIdException("Invalid User Id");
 

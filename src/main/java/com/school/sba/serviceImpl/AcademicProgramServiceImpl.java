@@ -78,6 +78,12 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 				.build();
 	}
 
+	public void deleteAcademicProgramIfDeleted()
+	{		
+		List<AcademicProgram> academicProgramsToDelete = academicProgramRepository.findByIsDeleted(true);
+		if(!academicProgramsToDelete.isEmpty())
+			academicProgramRepository.deleteAll(academicProgramsToDelete);
+	}
 
 	@Override
 	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> saveAcademicProgram(
@@ -148,8 +154,8 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 
 							if(academicProgram.getSubjects().contains(user.getSubject()))
 							{
-								user.getAcademicPrograms().add(academicProgram);
-								userRepository.save(user);
+								academicProgram.getUsers().add(user);
+								academicProgramRepository.save(academicProgram);
 							}
 							else
 								throw new InvalidAcademicProgramAssignmentToTeacherException("Invalid Academic Program assigned to teacher, please assign a proper academic program which contains subject related to the teacher");
@@ -161,8 +167,8 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 					}
 					else
 					{
-						user.getAcademicPrograms().add(academicProgram);
-						userRepository.save(user);
+						academicProgram.getUsers().add(user);
+						academicProgramRepository.save(academicProgram);
 					}
 					return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Academic Program assigned to the user successfully", mapToAcademicProgramResponse(academicProgram));
 

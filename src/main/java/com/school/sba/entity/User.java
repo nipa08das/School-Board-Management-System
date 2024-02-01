@@ -13,7 +13,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -54,14 +53,11 @@ public class User {
 	@JoinColumn(name = "schoolId")
 	private School school;
 	
-	@ManyToMany
-	@JoinTable(name = "user_academicProgram",
-	joinColumns = @JoinColumn(name = "userId"),
-	inverseJoinColumns = @JoinColumn(name = "programId"))
-	private List<AcademicProgram> academicPrograms;
-
 	@ManyToOne
 	private Subject subject;
+	
+	@ManyToMany(mappedBy = "users", fetch = FetchType.EAGER)
+	private List<AcademicProgram> academicPrograms;
 	
 	@OneToMany(mappedBy = "user",fetch = FetchType.EAGER)
 	private List<ClassHour> classHours;

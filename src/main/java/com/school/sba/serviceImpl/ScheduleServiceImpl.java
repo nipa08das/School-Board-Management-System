@@ -68,9 +68,9 @@ public class ScheduleServiceImpl implements ScheduleService{
 	            	
 	            		if(school.getSchedule() == null)
 		            	{
-	            			Schedule schedule = scheduleRepository.save(mapToSchedule(scheduleRequest));
-		            		school.setSchedule(schedule);
-		            	    schoolRepository.save(school);
+	            			Schedule schedule = mapToSchedule(scheduleRequest);
+	            			schedule.setSchool(school);
+		            		schedule = scheduleRepository.save(schedule);
 		            	    return ResponseEntityProxy.getResponseEntity(HttpStatus.CREATED, "Scheduled created for School", mapToScheduleResponse(schedule));
 		            	}
 	            		else
@@ -113,13 +113,5 @@ public class ScheduleServiceImpl implements ScheduleService{
 			return ResponseEntityProxy.getResponseEntity(HttpStatus.FOUND, "Schedule updated successfully", mapToScheduleResponse(schedule));
 			
 		}).orElseThrow(() -> new ScheduleNotFoundByIdException("Invalid Schedule Id"));
-	}
-
-
-	public ResponseEntity<ResponseStructure<ScheduleResponse>> deleteSchedule(Schedule schedule) 
-	{
-		scheduleRepository.delete(schedule);
-		return ResponseEntityProxy.getResponseEntity(HttpStatus.OK, "Schedule deleted successfully", mapToScheduleResponse(schedule));
-	}
-	
+	}	
 }

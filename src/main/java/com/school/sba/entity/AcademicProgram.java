@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.school.sba.enums.ProgramType;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -45,7 +46,10 @@ public class AcademicProgram {
 	@JoinColumn(name = "schoolId")
 	private School school;
 	
-	@ManyToMany(mappedBy = "academicPrograms", fetch = FetchType.EAGER)
+	@ManyToMany
+	@JoinTable(name = "academicProgram_user",
+	joinColumns = @JoinColumn(name = "programId"),
+	inverseJoinColumns = @JoinColumn(name = "userId"))
 	private List<User> users;
 	
 	@ManyToMany
@@ -53,7 +57,7 @@ public class AcademicProgram {
 	joinColumns = @JoinColumn(name = "programId"),inverseJoinColumns = @JoinColumn(name = "subjectId"))
 	private List<Subject> subjects;
 	
-	@OneToMany(mappedBy = "academicProgram", fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "academicProgram", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<ClassHour> classHours;
 	
 }

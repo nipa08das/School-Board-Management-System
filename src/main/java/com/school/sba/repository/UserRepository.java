@@ -17,4 +17,6 @@ public interface UserRepository extends JpaRepository<User, Integer>{
 
 	List<User> findByAcademicProgramsAndUserRole(AcademicProgram academicProgram, UserRole role);
 
+	List<User> findByIsDeleted(boolean b);
+
 }

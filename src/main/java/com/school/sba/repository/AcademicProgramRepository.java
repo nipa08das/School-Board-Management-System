@@ -10,4 +10,6 @@ public interface AcademicProgramRepository extends JpaRepository<AcademicProgram
 
 	List<AcademicProgram> findBySchoolSchoolId(int schoolId);
 
+	List<AcademicProgram> findByIsDeleted(boolean b);
+
 }

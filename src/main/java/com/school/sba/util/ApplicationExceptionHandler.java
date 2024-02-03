@@ -21,6 +21,7 @@ import com.school.sba.exception.AcademicProgramNotFoundByIdException;
 import com.school.sba.exception.AcademicProgramNotFoundBySchoolIdException;
 import com.school.sba.exception.AdminAlreadyExistsException;
 import com.school.sba.exception.ClassHourNotFoundByIdException;
+import com.school.sba.exception.ClassHourNotFoundException;
 import com.school.sba.exception.DuplicateClassHourException;
 import com.school.sba.exception.InvalidAacdemicProgramException;
 import com.school.sba.exception.InvalidAcademicProgramAssignmentToTeacherException;
@@ -38,6 +39,8 @@ import com.school.sba.exception.UnauthorizedException;
 import com.school.sba.exception.UniqueConstraintViolationException;
 import com.school.sba.exception.UserNotFoundByIdException;
 import com.school.sba.exception.UserNotFoundInAcademicProgramException;
+import com.school.sba.exception.InvalidScheduleTimingsException;
+import com.school.sba.exception.ClassHourAlreadyExistException;
 import com.school.sba.exception.SubjectNotAssignedToTeacherException;
 
 @RestControllerAdvice
@@ -202,4 +205,23 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler{
 	{
 		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Users not found in the Academic Program");
 	}
+	
+	@ExceptionHandler(ClassHourAlreadyExistException.class)
+	public ResponseEntity<Object> handleClassHourAlreadyExist(ClassHourAlreadyExistException ex)
+	{
+		return exceptionStructure(HttpStatus.IM_USED, ex.getMessage(), "Class Hour Already Exist");
+	}
+	
+	@ExceptionHandler(ClassHourNotFoundException.class)
+	public ResponseEntity<Object> handleClassHourNotFound(ClassHourNotFoundException ex)
+	{
+		return exceptionStructure(HttpStatus.NOT_FOUND, ex.getMessage(), "Class Hour not found");
+	}
+	
+	@ExceptionHandler(InvalidScheduleTimingsException.class)
+	public ResponseEntity<Object> handleInvalidScheduleTimings(InvalidScheduleTimingsException ex)
+	{
+		return exceptionStructure(HttpStatus.BAD_REQUEST, ex.getMessage(), "Invalid Schedule Timings");
+	}
+	
 }

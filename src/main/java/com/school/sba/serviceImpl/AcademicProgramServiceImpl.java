@@ -47,6 +47,8 @@ public class AcademicProgramServiceImpl implements AcademicProgramService{
 	private UserRepository userRepository;
 	@Autowired
 	private UserServiceImpl userServiceImpl;
+	
+	public boolean autoGenerateClassHour = false;
 
 	//Mapper Methods
 	private AcademicProgram mapToAcademicProgram(AcademicProgramRequest academicProgramRequest)

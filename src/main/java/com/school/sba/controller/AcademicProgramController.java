@@ -27,7 +27,7 @@ public class AcademicProgramController {
 	private AcademicProgramService academicProgramService;
 
 	@PostMapping("/schools/{schoolId}/academic-programs")
-	@PreAuthorize("hasAuthority('ADMIN')")
+	//@PreAuthorize("hasAuthority('ADMIN')")
 	public ResponseEntity<ResponseStructure<AcademicProgramResponse>> saveAcademicProgram(
 			@RequestBody @Valid AcademicProgramRequest academicProgramRequest,@PathVariable int schoolId)
 	{
